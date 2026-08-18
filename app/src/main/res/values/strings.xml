@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Pulse</string>
+    <string name="notif_channel_messages">Messages</string>
+    <string name="notif_channel_statuses">Status updates</string>
+    <string name="google_web_client_id">REPLACE_WITH_WEB_CLIENT_ID</string>
+</resources>

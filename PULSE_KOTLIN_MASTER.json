@@ -1,0 +1,71 @@
+{
+  "project": "Pulse — Native Android (Kotlin)",
+  "version": "1.0.0",
+  "status": "scaffold-complete",
+  "description": "Native Kotlin + Jetpack Compose rewrite of the Pulse realtime status & messaging app. Same Supabase backend as the web/PWA client; no WebView.",
+  "location": "/home/sosa/Desktop/PulseKotlin",
+  "package": "com.pulse.statusapp",
+  "created": "2026-08-18",
+  "tech_stack": {
+    "language": "Kotlin 2.4.10",
+    "ui": "Jetpack Compose (Material 3, BOM 2026.08.00)",
+    "navigation": "Navigation Compose 2.9.8",
+    "backend": "supabase-kt 3.7.0 (auth-kt, postgrest-kt, realtime-kt, storage-kt)",
+    "http": "Ktor client 3.5.2 (Android engine)",
+    "serialization": "kotlinx-serialization 1.11.0",
+    "notifications": "Firebase Cloud Messaging (data-only, BOM 34.17.0)",
+    "sign_in": "Email/password + Google Sign-In (play-services-auth 21.6.0)",
+    "build": "AGP 8.13.0, Gradle wrapper (JDK 17 local / 21 CI), Compose compiler plugin",
+    "min_sdk": 26,
+    "target_sdk": 36,
+    "compile_sdk": 36
+  },
+  "backend_contract": {
+    "tables": ["profiles", "connections", "messages", "status_history", "message_reactions", "typing_statuses", "push_tokens", "notification_log", "read_receipts"],
+    "rpc_functions": [
+      "handle_new_user", "get_profile", "update_profile", "set_username", "is_username_available",
+      "request_connection", "respond_to_invite", "get_connections", "get_unread_counts",
+      "send_direct_message", "mark_messages_read", "react_to_message", "delete_message",
+      "set_typing", "update_last_seen", "deactivate_account", "delete_account", "register_push_token"
+    ],
+    "edge_functions": ["notify-friends", "compress-video"],
+    "storage_bucket": "status-media",
+    "notes": "Shares the exact same Supabase project as the web app (hrbophzmwuhmzyibjuge.supabase.co default URL). Google OAuth client IDs must match the Firebase android client; web client ID goes in strings.xml for ID token sign-in."
+  },
+  "source_layout": {
+    "ui_screens": ["AuthScreen", "UsernameScreen", "DashboardScreen", "ChatScreen", "SettingsScreen"],
+    "view_models": ["AuthViewModel", "UsernameViewModel", "DashboardViewModel", "ChatViewModel", "SettingsViewModel"],
+    "repositories": ["AuthRepository", "ProfileRepository", "ConnectionsRepository", "MessagesRepository", "NotificationsRepository"],
+    "core": ["PulseClient (Supabase singleton)", "PulseApp (Application + channels)", "PulseFirebaseMessagingService (data-only FCM)", "MainActivity", "PulseRoot (nav graph)"]
+  },
+  "feature_parity": {
+    "realtime_dms": "sender + recipient both receive postgres_changes inserts",
+    "read_receipts": "double ticks synced via realtime + fallback receipt-sync poll",
+    "reactions": "react_to_message RPC, live updates",
+    "message_delete": "delete_message RPC, live removal",
+    "typing_indicators": "typing_indicators table + realtime + auto-expiry",
+    "status_updates": "emoji + photo/video composer, live dashboard refresh",
+    "username": "mandatory onboarding, rename only in Settings, 2x/week cooldown",
+    "unread_badges": "get_unread_counts RPC + live realtime increments",
+    "push_notifications": "data-only FCM handled locally for DM + status notifications",
+    "account_management": "deactivate + delete with confirmation flows"
+  },
+  "build_and_ci": {
+    "local": "./gradlew assembleDebug -PSUPABASE_URL=... -PSUPABASE_ANON_KEY=...",
+    "ci": ".github/workflows/build-android.yml — assembleDebug on push to main, uploads app-debug.apk artifact (30 days)",
+    "secrets_required": ["SUPABASE_URL", "SUPABASE_ANON_KEY"],
+    "manual_steps": [
+      "Place Firebase google-services.json in app/ (package com.pulse.statusapp)",
+      "Replace REPLACE_WITH_WEB_CLIENT_ID in app/src/main/res/values/strings.xml with Google OAuth web client ID",
+      "Enable Google provider in Supabase Auth with the Android + Web OAuth client IDs",
+      "Ensure the Pulse SQL schema + edge functions are deployed to the Supabase project (from web repo supabase_setup.sql)"
+    ],
+    "env_override": "BuildConfig.SUPABASE_URL / SUPABASE_ANON_KEY via -P gradle properties (secrets in CI)"
+  },
+  "next_steps": [
+    "First CI build — fix any compile warnings surfaced by AGP/Kotlin 2.4",
+    "Smoke-test on device: auth, realtime chat, receipts, push",
+    "Move Supabase keys fully to BuildConfig + remove fallback URL for release",
+    "Add release signing config + Play Store / direct-download release build"
+  ]
+}
