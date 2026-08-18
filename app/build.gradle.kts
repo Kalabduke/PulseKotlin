@@ -25,9 +25,24 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Fixed keystore committed to the repo so the debug APK has a
+            // STABLE Google SHA-1 fingerprint across CI builds (otherwise
+            // Google sign-in breaks because each runner generates a new key).
+            signingConfig = signingConfigs.getByName("debug")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
     compileOptions {
